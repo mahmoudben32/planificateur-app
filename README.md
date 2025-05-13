@@ -1,7 +1,7 @@
 # Mobilis-plateform
 
 Access the live application here:  
-👉 [DeliveryPro Platform](https://main-bvxea6i-jenwo4in7lt44.fr-3.platformsh.site/)
+👉 [Mobilis Platform](https://main-bvxea6i-jenwo4in7lt44.fr-3.platformsh.site/)
 
 ## 🔐 Authentification
 
