@@ -1,0 +1,40 @@
+.custom-action-btn {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    margin: 0.25rem;
+    font-size: 1rem;
+    font-weight: 500;
+    text-align: center;
+    text-decoration: none;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+
+  .custom-btn {
+    background-color: #e74c3c;
+    border: none;
+    border-radius: 0.25rem;
+  }
+
+  .custom-btn:hover {
+    background-color: #c0392b;
+  }
+  
+  .custom-action-btn.modify {
+    background-color: #007bff;
+  }
+  
+  .custom-action-btn.modify:hover {
+    background-color: #0056b3;
+  }
+  
+  .custom-action-btn.delete {
+    background-color: #dc3545;
+  }
+  
+  .custom-action-btn.delete:hover {
+    background-color: #c82333;
+  }

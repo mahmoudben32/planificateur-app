@@ -1,0 +1,20 @@
+<div class="container">
+	<h1>Connexion</h1>
+	<form (ngSubmit)="onSubmit()">
+	  <mat-form-field appearance="outline">
+		<mat-label>Email</mat-label>
+		<input matInput [(ngModel)]="email" name="email" required>
+	  </mat-form-field>
+	  <mat-form-field appearance="outline">
+		<mat-label>Mot de passe</mat-label>
+		<input matInput [(ngModel)]="password" name="password" type="password" required>
+	  </mat-form-field>
+	  <button mat-raised-button color="primary">Se connecter</button>
+	</form>
+	<div class="test-credentials">
+		<h2>Test Credentials</h2>
+		<p><strong>Planificateur (Claudia Tessier)</strong></p>
+		<p>Email: ctr&#64;mobilis.fr</p>
+		<p>Mot de passe: 147258</p>
+	  </div>
+  </div>

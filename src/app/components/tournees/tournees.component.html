@@ -1,0 +1,102 @@
+<table class="table custom-table">
+	<tbody>
+	  @for (j of journees(); track j.reference) {
+		<tr>
+		  <td colspan="9" style="background:#f8f9fa;">
+			<div class="journee-block">
+			  <div class="journee-header d-flex justify-content-between align-items-center">
+				<div>
+				  <b>Journée {{ j.reference }}</b>
+				  <span class="ms-3">Date : {{ j.date }}</span>
+				  <span class="ms-3">Planificateur : {{ j.planificateurEmail}}</span>
+				  <span class="ms-3">Cout Total: {{ j.coutTotal.toFixed(2) }} €</span>
+				</div>
+				<button (click)="deleteJournee(j.reference)" class="custom-btn">Supprimer la journée</button>
+			  </div>
+			  <table class="table table-sm custom-table mt-2">
+				<thead>
+				  <tr>
+					<th>Référence tournée</th>
+					<th>État</th>
+					<th>Lettre</th>
+					<th>Distance (KM)</th>
+					<th>Durée de la tournee (Min)</th>
+					<th>Cout</th>
+					<th>Équipe</th>
+					<th>Camion</th>
+					<th>Type Camion</th>
+					<th>Commandes</th>
+				  </tr>
+				</thead>
+				<tbody>
+				  @if (j.tournees.length) {
+					@for (t of j.tournees; track t.reference) {
+					  <tr>
+						<td>{{ t.reference }}</td>
+						<td>{{ t.etat }}</td>
+						<td>{{ t.lettre }}</td>
+						<td>{{ t.distanceAParcourir }}</td>
+						<td>{{ t.dureeTheorique }}</td>
+						<td>{{ t.cout.toFixed(2) }} €</td>
+						<td>
+						  @if (t.equipeLivreursId) {
+							@let equipe = getEquipeById(t.equipeLivreursId);
+							@if (equipe) {
+							  @let membres = getLivreursFromIds(equipe.livreurIds);
+							  <span>
+								@for (membre of membres; track membre.trigramme) {
+								  {{ membre.prenom }} {{ membre.nom }}@if (membres.indexOf(membre) < membres.length - 1) {, }
+								}
+							  </span>
+							}
+							@else {
+							  {{ t.equipeLivreursId }}
+							}
+						  }
+						  @else {
+							-
+						  }
+						</td>
+						<td>{{ t.camion.immatriculation }}</td>
+						<td>
+						  @if (t.camion.typeCamion) {
+							{{ t.camion.typeCamion.nom }} ({{ t.camion.typeCamion.volume }} m³, {{ t.camion.typeCamion.prixAuKm }} €/km)
+						  }
+						  @else {
+							-
+						  }
+						</td>
+						<td>
+						  @if (t.commandeReferences.length) {
+							<ul class="mb-0">
+							  @for (c of t.commandeReferences; track c) {
+								@let commande = getCommandeByReference(c);
+								<li>
+								  {{ c }}
+								  @if (commande?.client?.adresse) {
+									— {{ commande?.client?.adresse?.adresse }}, {{ commande?.client?.adresse?.codePostal }} {{ commande?.client?.adresse?.ville }}
+								  }
+								</li>
+							  }
+							</ul>
+						  }
+						  @else {
+							-
+						  }
+						</td>
+					  </tr>
+					}
+				  }
+				  @else {
+					<tr>
+					  <td colspan="9"><i>Aucune tournée pour cette journée</i></td>
+					</tr>
+				  }
+				</tbody>
+			  </table>
+			</div>
+		  </td>
+		</tr>
+	  }
+	</tbody>
+  </table>

@@ -1,0 +1,242 @@
+<div class="planificateur-container row">
+  <div class="col-12 col-md-2 sidebar p-3">
+
+    <div class="mb-3">
+      <h5>Date de planification</h5>
+      <div class="bg-light p-2 rounded border text-center">
+        {{ planningDate() }}
+      </div>
+    </div>
+
+    <div class="commandes-selection mt-4">
+      <h5>Commandes à planifier</h5>
+      <div class="d-flex align-items-center gap-2 mb-1">
+        <button class="btn btn-sm btn-outline-secondary"
+                (click)="nombreCommandesUtilisees.set(Math.max(1, nombreCommandesUtilisees() - 1))">-</button>
+        <input type="number" class="form-control form-control-sm text-center"
+               style="width: 60px"
+               [min]="1"
+               [max]="commandesOuvertes().length"
+               [value]="nombreCommandesUtilisees()"
+               (input)="nombreCommandesUtilisees.set($any($event.target).valueAsNumber)">
+        <button class="btn btn-sm btn-outline-secondary"
+                (click)="nombreCommandesUtilisees.set(Math.min(commandesOuvertes().length, nombreCommandesUtilisees() + 1))">+</button>
+        <div class="total-disponibles ms-auto">
+          Commandes ouvertes : {{ commandesOuvertes().length }}
+        </div>
+      </div>
+      @if (isLoadMode()) {
+        <ng-container>
+          <button mat-stroked-button color="primary" (click)="showCommandesOuvertesOnMap()">
+            Afficher les commandes ouvertes
+          </button>
+        </ng-container>
+      }
+    </div>
+
+    <mat-form-field appearance="fill" class="w-100 mb-3 mt-4">
+      <mat-label>Stratégie de livraison</mat-label>
+      <mat-select [(ngModel)]="selectedStrategy">
+        <mat-option value="balanced">Répartition équilibrée</mat-option>
+        <mat-option value="custom">Répartition personnalisée</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <div style="margin-top: -20px;">
+      <h5>Équipes disponibles</h5>
+      <ul class="list-group">
+        @for (equipe of availableEquipeLivreurs(); track equipe.idEquipe) {
+          @if (equipe?.idEquipe != null) {
+            <li class="list-group-item d-flex flex-column align-items-start equipe-toggle"
+                (click)="isLoadMode() ? null : toggleEquipe(equipe)"
+                [class.selected]="isEquipeSelected(equipe)">
+              <div class="d-flex align-items-center w-100 flex-wrap gap-2">
+                <div class="color-box me-2" [style.background-color]="getEquipeColor(equipe.idEquipe)"></div>
+                <span class="me-2">Équipe {{ equipe.idEquipe }}</span>
+
+                <mat-form-field appearance="outline" class="camion-select-field" style="width: 150px;" (click)="$event.stopPropagation()">
+                  <mat-label>Camion</mat-label>
+                  <mat-select
+                    (click)="$event.stopPropagation()"
+                    [value]="equipeCamionMap().get(equipe.idEquipe) || ''"
+                    (selectionChange)="setEquipeCamion(equipe.idEquipe, $event.value)">
+                    @for (camion of camions(); track camion.code) {
+                      <mat-option [value]="camion.code" (click)="$event.stopPropagation()">
+                        <img [src]="camion.typeCamion.image"
+                             [alt]="camion.typeCamion.nom"
+                             style="width: 38px; height: 24px; object-fit: contain; margin-right: 8px; vertical-align: middle;">
+                        {{ camion.typeCamion.nom }} ({{ camion.immatriculation }})
+                      </mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+
+
+
+                @if (selectedStrategy() === 'custom') {
+                  <input type="number"
+                         min="0"
+                         [value]="desiredSizes()[$index]"
+                         (input)="updateSize($index, $any($event.target).valueAsNumber)"
+                         class="form-control form-control-sm"
+                         style="width: 80px;"
+                         (click)="$event.stopPropagation()" />
+                }
+
+                @if (isLoadMode() && hasTournee(equipe)) {
+                  <button mat-button (click)="showEquipeTournee(equipe); $event.stopPropagation()">Voir tournée</button>
+                }
+              </div>
+            </li>
+          }
+        }
+      </ul>
+
+      @if (selectedStrategy() === 'custom' && customTotal() !== nombreCommandesUtilisees()) {
+        <div class="alert alert-warning mt-2">
+          La somme des commandes par équipe doit être égale à {{ nombreCommandesUtilisees() }}.
+        </div>
+      }
+
+      @if (hasTeamOverLimit()) {
+        <div class="alert alert-danger mt-2">
+          Maximum 50 commandes par équipe autorisées.
+        </div>
+      }
+    </div>
+
+    @if( !allSelectedEquipesHaveCamion()){
+      <div class ="alert alert-warning">Veuillez sélectionner un camion pour chaque équipe sélectionnée.</div>
+    }
+
+    @if(nombreCommandesUtilisees() === 0){
+      <div class ="alert alert-warning">Veuillez sélectionner au moins une commande à planifier.</div>
+    }
+    <button
+      class="btn btn-primary w-100 mt-4"
+      (click)="creerTournees()"
+      [disabled]="!canCreateTournee() || nombreCommandesUtilisees() === 0 || isCustomInvalid()">
+      Prévisualiser la journée
+    </button>
+
+    <button
+  class="btn btn-success w-100 mt-2"
+  (click)="validerJournee()"
+  [disabled]="!plannedTournees().length">
+  Créer la journée
+</button>
+
+
+  </div>
+
+  <div class="col-12 col-md-10 map-wrapper p-3">
+    <div class="map-frame shadow rounded">
+      <app-map #mapRef></app-map>
+        <div class="row g-0">
+          <div id="selector-date-a" class="col-6 col-md-6 border-end pe-4">
+            <div class="mt-4">
+              <h5>Visualiser une Journée</h5>
+              <div style="width: 100%;">
+                <mat-form-field appearance="fill" class="w-100 mb-2" (click)="$event.stopPropagation()">
+                  <mat-label>Choisir une date</mat-label>
+                  <input matInput [matDatepicker]="picker" [value]="loadDate" (dateChange)="onLoadDateChange($event)">
+                  <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+                  <mat-datepicker #picker></mat-datepicker>
+                </mat-form-field>
+                <button class="btn btn-info w-100" (click)="loadTourneesForSelectedDate()">
+                  Visualiser
+                </button>
+              </div>
+            </div>
+          </div>
+          <div id="detail-tournee-a" class="col-6 col-md-6 ps-4">
+            @if (selectedEquipes().length) {
+              <div class="mt-4">
+                <h5>Détails des Tournées</h5>
+                <ul class="list-group details-tournees-list">
+                  @for (i of evenEquipeIndices(); track i) {
+                    <li class="list-group-item p-2">
+                      <div class="d-flex justify-content-between align-items-center gap-3">
+                        <!-- First équipe -->
+                        @let equipe1 = selectedEquipes()[i];
+                        <div class="d-flex align-items-center flex-fill equipe-details border-end border-light-subtle pe-3">
+                          <div class="color-box me-2" [style.backgroundColor]="getEquipeColor(equipe1.idEquipe)"></div>
+                          <strong style="font-size:0.95em;">Équipe {{ equipe1.idEquipe }}</strong>
+                          <span *ngIf="tourneeStats().get(equipe1.idEquipe) as stat" style="font-size:0.9em;">
+                            — {{ stat.distanceKm }} km, {{ stat.commandes }} commandes, ~{{ stat.timeMin }} min, {{ stat.cout?.toFixed(2) }}€
+                          </span>
+                        </div>
+                      
+                        <!-- Second équipe, if exists -->
+                        @if (selectedEquipes()[i+1]) {
+                          @let equipe2 = selectedEquipes()[i+1];
+                          <div class="d-flex align-items-center flex-fill equipe-details ps-3">
+                            <div class="color-box me-2" [style.backgroundColor]="getEquipeColor(equipe2.idEquipe)"></div>
+                            <strong style="font-size:0.95em;">Équipe {{ equipe2.idEquipe }}</strong>
+                            <span *ngIf="tourneeStats().get(equipe2.idEquipe) as stat" style="font-size:0.9em;">
+                              <!-- — {{ stat.distanceKm }} km, {{ stat.commandes }} commandes, ~{{ stat.timeMin }} min, {{ calculateEquipeCost(equipe2.idEquipe) }}€ -->
+                              — {{ stat.distanceKm }} km, {{ stat.commandes }} commandes, ~{{ stat.timeMin }} min, {{ stat.cout?.toFixed(2) }}€
+
+                            </span>
+                          </div>
+                        }
+                      </div>
+                    </li>
+                  }
+                  <li class="list-group-item d-flex justify-content-between align-items-center fw-bold bg-light">
+                    <div>Distance totale</div>
+                    <div>{{ totalDistanceKm() }} km</div>
+                    <div>Cout total</div>
+                    <div>{{ totalCostEuros() }}€</div>
+                    </li>
+                </ul>
+              </div>
+            }
+          </div>
+          </div>
+    </div>
+  </div>
+</div>
+
+@if (feedbackOpen()) {
+<ng-container>
+  <div
+    class="modal fade show feedback-modal"
+    tabindex="-1"
+    style="display:block"
+    (click)="feedbackOpen.set(false)"
+  >
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h5 class="modal-title">Info</h5>
+          <button
+            type="button"
+            class="btn-close"
+            aria-label="Close"
+            (click)="feedbackOpen.set(false)"
+          ></button>
+        </div>
+        <div
+          class="modal-body"
+          [ngClass]="{
+            error: feedbackMessage().startsWith('Erreur'),
+            success: !feedbackMessage().startsWith('Erreur')
+          }"
+        >
+          <p>{{ feedbackMessage() }}</p>
+        </div>
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn btn-primary"
+            (click)="feedbackOpen.set(false)"
+          >
+            OK
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</ng-container>
+}

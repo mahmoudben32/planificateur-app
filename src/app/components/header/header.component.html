@@ -1,0 +1,24 @@
+<header>
+  <div class="header-left">
+    <div>
+      <button routerLink="/tableau-de-bord">Tableau de bord</button>
+      <button routerLink="/gestion-dequipes">Gestion d'équipes</button>
+      <button routerLink="/tournees">Tournées</button>
+      <button routerLink="/planificateur-automatique">Planification</button>
+    </div>
+  </div>
+
+  <div class="header-center">Interface Planificateur</div>
+
+  <div class="header-right">
+    <img src="assets/images/notification.png" alt="Notification" class="notification" />
+    <div class="profile-dropdown">
+      <button class="profile-dropbtn"> &#9776;</button>
+      <div class="profile-dropdown-content">
+        <button>Mon Profil</button>
+        <button>Paramètres</button>
+        <button (click)="logout()">Déconnexion</button>
+      </div>
+    </div>
+  </div>
+</header>

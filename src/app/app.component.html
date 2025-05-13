@@ -1,0 +1,27 @@
+@if(authService.user()) {
+    <header>
+        <div class="header-left">
+            <div>
+                <img src="assets/images/logo1_mobilis.png" alt="Mobilis" class="mobilis" />
+                <button routerLink="/tableau-de-bord" routerLinkActive="active-link">Tableau de bord</button>
+                <button routerLink="/gestion-dequipes" routerLinkActive="active-link">Gestion d'équipes</button>
+                <button routerLink="/planificateur-automatique" routerLinkActive="active-link">Planification</button>
+                <button routerLink="/tournees" routerLinkActive="active-link">Journées</button>
+    
+            </div>
+        </div>
+        <div class="header-center">
+            @if(authService.username()) {
+                <h4>{{ authService.username() }}</h4>
+                }
+        </div>
+        <div class="header-right">
+            <div class="logout-btn">
+                <button (click)="logout()">
+                    <img src="assets/images/logout-icon.png">
+                </button>
+            </div>
+        </div>
+    </header>
+    }
+    <router-outlet></router-outlet>

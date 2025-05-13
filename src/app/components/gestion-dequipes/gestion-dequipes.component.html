@@ -1,0 +1,104 @@
+<div class="container my-4">
+  <div class="d-flex justify-content-between align-items-center header-box mb-4">
+    <h1 class="page-title">Les Équipes :</h1>
+    <button class="custom-btn custom-btn-primary" (click)="showModal.set(true)">Nouvelle Équipe</button>
+  </div>
+  
+  
+  @if (isLoadingEquipes()) {
+    <div class="d-flex justify-content-center">
+      <mat-spinner></mat-spinner>
+    </div>
+  } @else {
+    <div class="row">
+      @for (item of equipes(); track $index) {
+        <div class="col-sm-6 col-md-4 col-lg-3 mb-4">
+          <div class="custom-card">
+            <div class="custom-card-body d-flex flex-column">
+              <h5 class="custom-card-header">Equipe {{ item.idEquipe }}</h5>
+              <p class="custom-card-text">
+                <strong>Statut : </strong>
+                <span [ngClass]="{
+                  'custom-text-success': item.status === 'PRET',
+                  'custom-text-warning': item.status === 'EN_LIVRAISON',
+                  'custom-text-danger': item.status === 'NON_DISPONIBLE'
+                }" class="custom-status">
+                  {{ item.status }}
+                </span>
+              </p>
+              <ul class="custom-list">
+                @for (id of item.livreurIds; track id) {
+                  @if (getLivreurById(id)) {
+                    <li>{{ getLivreurById(id)?.prenom }} {{ getLivreurById(id)?.nom }}</li>
+                  }
+                }
+              </ul>
+              <div class="custom-actions mt-auto">
+                <button class="custom-btn custom-btn-primary btn-sm" (click)="modifierEquipe(item.idEquipe!)">Modifier</button>
+                <button class="custom-btn custom-btn-danger btn-sm" (click)="supprimerEquipe(item.idEquipe!)">Supprimer</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>
+
+@if (showModal()){
+  <div class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>{{ editingEquipeId() ? 'Modifier une équipe' : 'Créer une nouvelle équipe' }}</h2>
+        <button class="close-btn" (click)="annuler()">&times;</button>
+      </div>
+      @if (errorMessage()) {
+        <div class="alert alert-danger my-3">
+          {{ errorMessage() }}
+        </div>
+      }
+
+      <div class="modal-body">
+        <form>
+          @if (!editingEquipeId()) {
+            <div class="form-group mb-3">
+              <label for="livreur1">Sélectionnez le premier livreur <span style="color:red">*</span></label>
+              <select id="livreur1" class="form-control" [(ngModel)]="equipeForm().livreur1" name="livreur1" required>
+                <option value="" disabled selected hidden>Choisir...</option>
+                @for (l of dispo(); track $index) {
+                  <option [value]="l.trigramme">
+                    {{ l.prenom }} {{ l.nom }}
+                  </option>
+                }
+              </select>
+            </div>
+            <div class="form-group mb-3">
+              <label for="livreur2">Sélectionnez le second livreur</label>
+              <select id="livreur2" class="form-control" [(ngModel)]="equipeForm().livreur2" name="livreur2">
+                <option value="">Aucun</option>
+                @for (l of dispo(); track $index) {
+                  <option [value]="l.trigramme">
+                    {{ l.prenom }} {{ l.nom }}
+                  </option>
+                }
+              </select>
+            </div>
+          }
+          <div class="form-group mb-3">
+            <label for="status">Statut</label>
+            <select id="status" class="form-control" [(ngModel)]="equipeForm().status" name="status">
+              <option [value]="StatusEquipeLivreurs.PRET">PRET</option>
+              <option [value]="StatusEquipeLivreurs.NON_DISPONIBLE">NON_DISPONIBLE</option>
+            </select>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="custom-btn custom-btn-primary" (click)="editingEquipeId() ? enregistrerModification() : creerEquipe()">
+          {{ editingEquipeId() ? 'Enregistrer les modifications' : 'Enregistrer' }}
+        </button>
+        <button class="custom-btn custom-btn-danger" (click)="annuler()">Annuler</button>
+      </div>
+    </div>
+  </div>
+}

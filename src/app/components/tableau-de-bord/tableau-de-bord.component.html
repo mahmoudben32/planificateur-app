@@ -1,0 +1,69 @@
+<div class="row main-container">
+  <div class="col-md-6 stats-section">
+    <div class="box">
+      <h1 class="section-title">Statistiques du jour</h1>
+      <div class="stats-details">
+        <div class="stat-item">
+          <span class="stat-label">Nombre de commandes :</span>
+          <span class="stat-value">{{ totalCommandes() }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Commandes effectuées :</span>
+          <span class="stat-value">{{ terminees() }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Commandes en cours :</span>
+          <span class="stat-value">{{ enCours() }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">En attente :</span>
+          <span class="stat-value">{{ enAttente() }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6 teams-section">
+    <div class="box">
+      <h1 class="section-title">Équipes Livreurs</h1>
+      <div class="teams-group">
+        <h3 class="sub-section-title">Actives</h3>
+        @for (item of equipes(); track item.idEquipe) {
+          @if (item.status === StatusEquipeLivreurs.EN_LIVRAISON) {
+            <p class="team-item">
+              <span class="team-id">{{ item.idEquipe }}</span> :
+              @if (item.livreurIds.length >1) {
+              <span class="team-names">{{ getLivreurById(item.livreurIds[0])?.nom }} {{ getLivreurById(item.livreurIds[0])?.prenom }} et {{ getLivreurById(item.livreurIds[1])?.nom }} {{ getLivreurById(item.livreurIds[1])?.prenom }}</span>
+              }
+              @else {
+              <span class="team-names">{{ getLivreurById(item.livreurIds[0])?.nom }} {{ getLivreurById(item.livreurIds[0])?.prenom }}</span>
+              }
+            </p>
+          }
+        }
+      </div>
+      <div class="teams-group">
+        <h3 class="sub-section-title">Prêtes</h3>
+        @for (item of equipes(); track item.idEquipe) {
+          @if (item.status === StatusEquipeLivreurs.PRET) {
+            <p class="team-item">
+              <span class="team-id">{{ item.idEquipe }}</span> :
+              @if (item.livreurIds.length >1) {
+                <span class="team-names">{{ getLivreurById(item.livreurIds[0])?.nom }} {{ getLivreurById(item.livreurIds[0])?.prenom }} et {{ getLivreurById(item.livreurIds[1])?.nom }} {{ getLivreurById(item.livreurIds[1])?.prenom }}</span>
+              }
+              @else {
+                <span class="team-names">{{ getLivreurById(item.livreurIds[0])?.nom }} {{ getLivreurById(item.livreurIds[0])?.prenom }}</span>
+              }
+            </p>
+          }
+        }
+      </div>
+    </div>
+  </div>
+
+  @if (isLoading()) {
+    <div class="loading-spinner-overlay">
+      <mat-spinner class="spinner"></mat-spinner>
+    </div>
+  }
+</div>
